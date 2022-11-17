@@ -11,8 +11,8 @@ from torch.utils.data import TensorDataset, DataLoader, RandomSampler, Sequentia
 class Preprocessor(pl.LightningDataModule):
 
     def __init__(self, max_length=100, batch_size=100, dataset='dataset/indo_tweet_sentiment.csv'):
-        super(Preprocessor, self).__init__()        
-        self.dataset = pd.read_csv(dataset)
+        super(Preprocessor, self).__init__()      
+        self.dataset = pd.read_csv(dataset).dropna()
         self.max_length = max_length
         self.batch_size = batch_size
         self.stemmer = StemmerFactory().create_stemmer()
