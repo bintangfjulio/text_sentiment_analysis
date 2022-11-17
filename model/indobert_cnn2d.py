@@ -9,7 +9,7 @@ from transformers import BertModel
 
 class IndoBERT_CNN2D(pl.LightningModule):
 
-    def __init__(self, n_out=7, dropout=0.3, lr=1e-5, embedding_dim=768, in_channels=8, out_channels=40):
+    def __init__(self, n_out=3, dropout=0.3, lr=1e-5, embedding_dim=768, in_channels=8, out_channels=24):
         super(IndoBERT_CNN2D, self).__init__()
 
         torch.manual_seed(1)
