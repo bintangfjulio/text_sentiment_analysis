@@ -1,2 +1,2 @@
-# indobertcnn2d_tweetsentiment_analysist
+# indobertcnn2d_tweetsentiment_analysis
 Still experiment
