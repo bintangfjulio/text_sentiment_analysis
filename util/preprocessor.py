@@ -81,7 +81,7 @@ class Preprocessor(pl.LightningDataModule):
         x_input_ids, x_token_type_ids, x_attention_mask, y = [], [], [], []
 
         for data in dataset.values.tolist():
-            tweet = self.data_cleaning(data[1]) 
+            tweet = self.data_cleaning(str(data[1])) 
             label = data[0]
 
             binary_label = [0] * len(self.id_label)
