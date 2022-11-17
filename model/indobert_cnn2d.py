@@ -4,12 +4,12 @@ import torch
 import pytorch_lightning as pl
 import torch.nn.functional as F
 
-from sklearn.metrics import classification_report
+from torchmetrics import AUROC
 from transformers import BertModel
 
 class IndoBERT_CNN2D(pl.LightningModule):
 
-    def __init__(self, n_out=3, dropout=0.3, lr=1e-5, embedding_dim=768, in_channels=8, out_channels=24):
+    def __init__(self, labels=['Neutral', 'Positive', 'Negative'], n_out=3, dropout=0.3, lr=1e-5, embedding_dim=768, in_channels=8, out_channels=24):
         super(IndoBERT_CNN2D, self).__init__()
 
         torch.manual_seed(1)
@@ -21,6 +21,7 @@ class IndoBERT_CNN2D(pl.LightningModule):
         self.conv2 = nn.Conv2d(in_channels, out_channels, (4, embedding_dim), groups=4)
         self.conv3 = nn.Conv2d(in_channels, out_channels, (5, embedding_dim), groups=4)
 
+        self.labels = labels
         self.dropout = nn.Dropout(dropout)
         self.lr = lr
         self.criterion = nn.BCELoss()
@@ -65,16 +66,9 @@ class IndoBERT_CNN2D(pl.LightningModule):
                 token_type_ids=x_token_type_ids)
 
         loss = self.criterion(out.cpu(), y.float().cpu())
-
-        pred = out.argmax(1).cpu()
-        true = y.argmax(1).cpu()
-        report = classification_report(
-            true, pred, output_dict=True, zero_division=0)
-
-        self.log("train_accuracy", report["accuracy"], prog_bar=True)
         self.log("train_loss", loss)
 
-        return loss
+        return {"loss": loss, "predictions": out, "labels": y}
 
     def validation_step(self, valid_batch, batch_idx):
         x_input_ids, x_token_type_ids, x_attention_mask, y = valid_batch
@@ -84,16 +78,9 @@ class IndoBERT_CNN2D(pl.LightningModule):
                 token_type_ids=x_token_type_ids)
         
         loss = self.criterion(out.cpu(), y.float().cpu())
-
-        pred = out.argmax(1).cpu()
-        true = y.argmax(1).cpu()
-        report = classification_report(
-            true, pred, output_dict=True, zero_division=0)
-
-        self.log("val_accuracy", report["accuracy"], prog_bar=True)
         self.log("val_loss", loss)
 
-        return loss
+        return {"val_loss": loss}
 
     def predict_step(self, test_batch, batch_idx):
         x_input_ids, x_token_type_ids, x_attention_mask, y = test_batch
@@ -103,3 +90,21 @@ class IndoBERT_CNN2D(pl.LightningModule):
                 token_type_ids=x_token_type_ids)
 
         return out
+
+    def training_epoch_end(self, outputs):
+        labels = []
+        predictions = []
+        for outputs in outputs:
+            for out_lbl in outputs["labels"].detach().cpu():
+                labels.append(out_lbl)
+            for out_pred in outputs["predictions"].detach().cpu():
+                predictions.append(out_pred)
+
+        labels = torch.stack(labels).int()
+        predictions = torch.stack(predictions)
+
+        for i, name in enumerate(self.labels):
+            auroc = AUROC(num_classes = len(self.labels))
+            class_roc_auc = auroc(predictions[:, i], labels[:, i])
+            print(f"{name} \t : {class_roc_auc}")
+            self.logger.experiment.add_scalar(f"{name}_roc_auc/Train", class_roc_auc, self.current_epoch)

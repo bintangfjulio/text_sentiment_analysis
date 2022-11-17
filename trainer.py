@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     trainer = pl.Trainer(
         accelerator='gpu',
-        max_epochs=50,
+        max_epochs=25,
         callbacks = [early_stop_callback],
         logger=logger)
 
