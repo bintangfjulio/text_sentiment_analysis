@@ -12,16 +12,7 @@ class Preprocessor(pl.LightningDataModule):
 
     def __init__(self, max_length=100, batch_size=100, dataset='dataset/indo_tweet_sentiment.csv'):
         super(Preprocessor, self).__init__()        
-        self.id_label = {
-            -1 : 0,
-            0  : 1,
-            1  : 2
-        }
-
-        dataset = pd.read_csv(dataset)
-        dataset["sentimen"] = dataset["sentimen"].map(self.id_label)
-
-        self.dataset = dataset
+        self.dataset = pd.read_csv(dataset)
         self.max_length = max_length
         self.batch_size = batch_size
         self.stemmer = StemmerFactory().create_stemmer()
@@ -84,8 +75,8 @@ class Preprocessor(pl.LightningDataModule):
             tweet = self.data_cleaning(str(data[1])) 
             label = data[0]
 
-            binary_label = [0] * len(self.id_label)
-            binary_label[label] = 1
+            binary_label = [0] * 7
+            binary_label[int(label)] = 1
 
             token = self.tokenizer(text=tweet,  
                                 max_length=self.max_length, 
