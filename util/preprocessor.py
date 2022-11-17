@@ -19,7 +19,6 @@ class Preprocessor(pl.LightningDataModule):
         }
 
         dataset = pd.read_csv(dataset)
-        dataset = dataset.dropna()
         dataset["sentimen"] = dataset["sentimen"].map(self.id_label)
 
         self.dataset = dataset
