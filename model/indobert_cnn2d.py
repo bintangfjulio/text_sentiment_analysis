@@ -106,4 +106,4 @@ class IndoBERT_CNN2D(pl.LightningModule):
         report = classification_report(true, pred, output_dict = True, zero_division = 0)
         self.log_dict({'test_loss': loss, 'test_acc': report["accuracy"]}, prog_bar=True, on_epoch=True)
 
-        return 
+        return loss
