@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous" />
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://unpkg.com/aos@next/dist/aos.css" />
+
+  <title>Indonesian Text Sentiment Classifier</title>
+  <style>
+      .container-1 {
+        width: 100%;
+        display: flex;
+        box-sizing: border-box;
+        margin: auto;
+        padding: 90px;
+        justify-content: center;
+      }
+
+      .btn {
+        background-color: rgba(40, 119, 165, 0.8);
+        border-radius: 15px;
+        box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 1px 5px 0 rgba(0,0,0,0.19);
+        padding: 9px 130px;
+        font-size: 14px;
+        font-weight: 600;
+      }
+
+      .form-control {
+        font-size: 14px;
+        margin-bottom: 18px;
+      }
+
+      .menu-item {
+        box-sizing: border-box;
+        padding: 20px;
+        margin: 30px;
+        align-items: center;
+      }
+
+      .menu-desc {
+        border: 1px solid #b8b8b8;
+        border-radius: 20px;
+        background-color: #fff;
+      }
+
+      .title{
+        color: rgba(40, 119, 165, 0.8);
+        margin-bottom: 25px;
+      }
+
+      p {
+        color: rgba(40, 119, 165, 0.8);
+        font-weight: 600;
+        font-size: 16px;
+      }
+    </style>
+</head>
+<body>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous">
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.12"></script>
+  <div class="container-fluid container-1">
+    <div class="menu-item menu-desc shadow" data-aos="fade-right" data-aos-duration="1000">
+      <center>
+        <h5 class="title">Indonesian Text Sentiment Classifier</h5>
+      </center>
+      <form action="/" method="post">
+        <div class="form-group">
+          <textarea class="form-control" id="text" placeholder="insert text" rows="3" name="text" required></textarea>
+        </div>
+        <center>
+          <button type="submit" class="btn btn-primary">check</button>
+        </center>
+        {% if prediction %}
+          <p class="text-center mt-5">text: "{{ text }}"<br>sentimen: {{ prediction }}</p>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+  <script src="https://unpkg.com/aos@next/dist/aos.js"></script>
+  <script>
+    AOS.init();
+  </script>
+</body>
+</html>
