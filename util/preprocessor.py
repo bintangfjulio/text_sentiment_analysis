@@ -3,23 +3,27 @@ import torch
 import os
 import re
 import pandas as pd
+import nltk
+import multiprocessing
 
+from nltk.corpus import stopwords
 from transformers import BertTokenizer
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
+from torch.utils.data import TensorDataset, DataLoader
+
+nltk.download('stopwords')
 
 class Preprocessor(pl.LightningDataModule):
-
-    def __init__(self, max_length=100, batch_size=100, dataset='dataset/indo_tweet_sentiment.csv'):
+    def __init__(self, max_length=100, batch_size=32, dataset='dataset/indo_tweet_sentiment.csv'):
         super(Preprocessor, self).__init__() 
-
         dataset = pd.read_csv(dataset).dropna()
         row = dataset[ (dataset['sentimen'] > 2.0)].index
         dataset.drop(row, inplace=True)
-
+        
         self.dataset = dataset
         self.max_length = max_length
         self.batch_size = batch_size
+        self.stop_words = stopwords.words('indonesian')
         self.stemmer = StemmerFactory().create_stemmer()
         self.tokenizer = BertTokenizer.from_pretrained('indolem/indobert-base-uncased')
 
@@ -28,34 +32,29 @@ class Preprocessor(pl.LightningDataModule):
         if stage == "fit":
             self.train_data = train_data
             self.valid_data = valid_data
-        elif stage == "predict":
+        elif stage == "test":
             self.test_data = test_data
 
     def train_dataloader(self):
-        sampler = RandomSampler(self.train_data)
         return DataLoader(
             dataset=self.train_data,
             batch_size=self.batch_size,
-            sampler=sampler,
-            num_workers=2
+            shuffle=True,
+            num_workers=multiprocessing.cpu_count()
         )
 
     def val_dataloader(self):
-        sampler = RandomSampler(self.valid_data)
         return DataLoader(
             dataset=self.valid_data,
             batch_size=self.batch_size,
-            sampler=sampler,
-            num_workers=2
+            num_workers=multiprocessing.cpu_count()
         )
 
-    def predict_dataloader(self):
-        sampler = SequentialSampler(self.test_data)
+    def test_dataloader(self):
         return DataLoader(
             dataset=self.test_data,
             batch_size=self.batch_size,
-            sampler=sampler,
-            num_workers=2
+            num_workers=multiprocessing.cpu_count()
         )
 
     def preprocessor(self):
@@ -75,6 +74,8 @@ class Preprocessor(pl.LightningDataModule):
 
     def preprocessing_data(self, dataset):
         x_input_ids, x_token_type_ids, x_attention_mask, y = [], [], [], []
+
+        dataset = dataset.dropna()
 
         for data in dataset.values.tolist():
             tweet = self.data_cleaning(str(data[1])) 
@@ -124,22 +125,24 @@ class Preprocessor(pl.LightningDataModule):
 
         return train_data, valid_data, test_data
 
-    def data_cleaning(self, string):
-        string = string.lower()
-        string = re.sub(r"[^A-Za-z0-9(),!?\'\-`]", " ", string)
-        string = re.sub(r"\'s", " \'s", string)
-        string = re.sub(r"\'ve", " \'ve", string)
-        string = re.sub(r"n\'t", " n\'t", string)
-        string = re.sub(r"\n", "", string)
-        string = re.sub(r"\'re", " \'re", string)
-        string = re.sub(r"\'d", " \'d", string)
-        string = re.sub(r"\'ll", " \'ll", string)
-        string = re.sub(r",", " , ", string)
-        string = re.sub(r"!", " ! ", string)
-        string = re.sub(r"\(", " \( ", string)
-        string = re.sub(r"\)", " \) ", string)
-        string = re.sub(r"\?", " \? ", string)
-        string = re.sub(r"\s{2,}", " ", string)
-        string = string.strip()
+    def data_cleaning(self, text):
+        text = text.lower()
+        text = re.sub(r"[^A-Za-z0-9(),!?\'\-`]", " ", text)
+        text = re.sub(r"\'s", " \'s", text)
+        text = re.sub(r"\'ve", " \'ve", text)
+        text = re.sub(r"n\'t", " n\'t", text)
+        text = re.sub(r"\n", "", text)
+        text = re.sub(r"\'re", " \'re", text)
+        text = re.sub(r"\'d", " \'d", text)
+        text = re.sub(r"\'ll", " \'ll", text)
+        text = re.sub(r",", " , ", text)
+        text = re.sub(r"!", " ! ", text)
+        text = re.sub(r"\(", " \( ", text)
+        text = re.sub(r"\)", " \) ", text)
+        text = re.sub(r"\?", " \? ", text)
+        text = re.sub(r"\s{2,}", " ", text)
+        text = text.strip()
+        text = ' '.join([word for word in text.split() if word not in self.stop_words])
+        text = self.stemmer.stem(text) 
 
-        return self.stemmer.stem(string) 
+        return text
