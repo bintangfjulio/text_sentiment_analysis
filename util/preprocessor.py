@@ -68,7 +68,7 @@ class Preprocessor(pl.LightningDataModule):
             print("\nPreprocessing Data...")
             train_data = self.preprocessing_data(pd.read_csv('dataset/train.csv'))
             valid_data = self.preprocessing_data(pd.read_csv('dataset/valid.csv'))
-            test_data = self.preprocessing_data(pd.read_csv('test/train.csv'))
+            test_data = self.preprocessing_data(pd.read_csv('dataset/test.csv'))
             torch.save(train_data, "dataset/train.pt")
             torch.save(valid_data, "dataset/valid.pt")
             torch.save(test_data, "dataset/test.pt")
