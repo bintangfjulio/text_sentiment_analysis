@@ -9,7 +9,7 @@ from transformers import BertModel
 class IndoBERT(pl.LightningModule):
     def __init__(self, 
                 n_out=2, 
-                dropout=0.5, # 0.3
+                dropout=0.3,
                 lr=2e-5):
 
         super(IndoBERT, self).__init__()
