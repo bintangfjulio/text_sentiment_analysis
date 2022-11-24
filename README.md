@@ -1,2 +1,2 @@
 # Tweet Sentiment Analysis
-Still experiment
+Sentiment classifier with flesk prototype
