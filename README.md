@@ -1,2 +1,2 @@
 # Tweet Sentiment Analysis
-Sentiment classifier with flesk prototype
+Sentiment Analysis with Flesk Classifier Prototype
