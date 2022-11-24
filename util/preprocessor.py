@@ -4,23 +4,17 @@ import os
 import re
 import pandas as pd
 import nltk
-import multiprocessing
 
 from nltk.corpus import stopwords
 from transformers import BertTokenizer
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from torch.utils.data import TensorDataset, DataLoader
+from torch.utils.data import TensorDataset, DataLoader, RandomSampler, SequentialSampler
 
 nltk.download('stopwords')
 
 class Preprocessor(pl.LightningDataModule):
-    def __init__(self, max_length=100, batch_size=32, dataset='dataset/indo_tweet_sentiment.csv'):
+    def __init__(self, max_length=100, batch_size=32):
         super(Preprocessor, self).__init__() 
-        dataset = pd.read_csv(dataset).dropna()
-        row = dataset[ (dataset['sentimen'] > 2.0)].index
-        dataset.drop(row, inplace=True)
-        
-        self.dataset = dataset
         self.max_length = max_length
         self.batch_size = batch_size
         self.stop_words = stopwords.words('indonesian')
@@ -36,25 +30,30 @@ class Preprocessor(pl.LightningDataModule):
             self.test_data = test_data
 
     def train_dataloader(self):
+        sampler = RandomSampler(self.train_data)
         return DataLoader(
             dataset=self.train_data,
             batch_size=self.batch_size,
-            shuffle=True,
-            num_workers=multiprocessing.cpu_count()
+            sampler=sampler,
+            num_workers=2
         )
 
     def val_dataloader(self):
+        sampler = RandomSampler(self.valid_data)
         return DataLoader(
             dataset=self.valid_data,
             batch_size=self.batch_size,
-            num_workers=multiprocessing.cpu_count()
+            sampler=sampler,
+            num_workers=2
         )
 
     def test_dataloader(self):
+        sampler = SequentialSampler(self.test_data)
         return DataLoader(
             dataset=self.test_data,
             batch_size=self.batch_size,
-            num_workers=multiprocessing.cpu_count()
+            sampler=sampler,
+            num_workers=2
         )
 
     def preprocessor(self):
@@ -67,7 +66,12 @@ class Preprocessor(pl.LightningDataModule):
         
         else:
             print("\nPreprocessing Data...")
-            train_data, valid_data, test_data = self.preprocessing_data(self.dataset)
+            train_data = self.preprocessing_data(pd.read_csv('dataset/train.csv'))
+            valid_data = self.preprocessing_data(pd.read_csv('dataset/valid.csv'))
+            test_data = self.preprocessing_data(pd.read_csv('test/train.csv'))
+            torch.save(train_data, "dataset/train.pt")
+            torch.save(valid_data, "dataset/valid.pt")
+            torch.save(test_data, "dataset/test.pt")
             print('[ Preprocessing Completed ]\n')
 
         return train_data, valid_data, test_data
@@ -81,7 +85,7 @@ class Preprocessor(pl.LightningDataModule):
             tweet = self.data_cleaning(str(data[1])) 
             label = data[0]
 
-            binary_label = [0] * 3
+            binary_label = [0] * 2
             binary_label[int(label)] = 1
 
             token = self.tokenizer(text=tweet,  
@@ -98,32 +102,9 @@ class Preprocessor(pl.LightningDataModule):
         x_token_type_ids = torch.tensor(x_token_type_ids)
         x_attention_mask = torch.tensor(x_attention_mask)
         y = torch.tensor(y)
-
         tensor_dataset = TensorDataset(x_input_ids, x_token_type_ids, x_attention_mask, y)
-
-        train_valid_size = round(len(tensor_dataset) * 0.8)
-        test_size = len(tensor_dataset) - train_valid_size
-
-        train_valid_data, test_data = torch.utils.data.random_split(
-            tensor_dataset, [
-                train_valid_size, test_size
-            ]
-        )
-
-        train_size = round(len(train_valid_data) * 0.9)
-        valid_size = len(train_valid_data) - train_size
-
-        train_data, valid_data = torch.utils.data.random_split(
-            train_valid_data, [
-                train_size, valid_size
-            ]
-        )
-
-        torch.save(train_data, "dataset/train.pt")
-        torch.save(valid_data, "dataset/valid.pt")
-        torch.save(test_data, "dataset/test.pt")
-
-        return train_data, valid_data, test_data
+        
+        return tensor_dataset
 
     def data_cleaning(self, text):
         text = text.lower()

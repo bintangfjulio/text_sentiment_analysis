@@ -2,62 +2,48 @@ import torch.nn as nn
 import torch
 import pytorch_lightning as pl
 import random
-import torch.nn.functional as F
 
 from sklearn.metrics import classification_report
 from transformers import BertModel
 
-class IndoBERT_CNN2D(pl.LightningModule):
-
+class IndoBERT(pl.LightningModule):
     def __init__(self, 
-                n_out=3, 
+                n_out=2, 
                 dropout=0.5, 
-                lr=2e-5, 
-                embedding_dim=768, 
-                in_channels=8, 
-                out_channels=24):
+                lr=2e-5):
 
-        super(IndoBERT_CNN2D, self).__init__()
+        super(IndoBERT, self).__init__()
+
         torch.manual_seed(1)
         random.seed(43)
 
-        conv = 3
-        self.bert = BertModel.from_pretrained('indolem/indobert-base-uncased', output_hidden_states = True)
-        self.conv1 = nn.Conv2d(in_channels, out_channels, (3, embedding_dim), padding=(2,0))
-        self.conv2 = nn.Conv2d(in_channels, out_channels, (4, embedding_dim), padding=(3,0))
-        self.conv3 = nn.Conv2d(in_channels, out_channels, (5, embedding_dim), padding=(4,0))
+        self.bert = BertModel.from_pretrained('indolem/indobert-base-uncased')
+        self.pre_classifier = nn.Linear(768, 768)
         self.dropout = nn.Dropout(dropout)
-        self.classifier = nn.Linear(conv * out_channels, n_out)
-        self.sigmoid = nn.Sigmoid()
+        self.classifier = nn.Linear(768, n_out)
         self.lr = lr
-        self.criterion = nn.BCELoss()
+        self.criterion = nn.BCEWithLogitsLoss()
+        self.tanh = nn.Tanh()
 
     def forward(self, input_ids, attention_mask, token_type_ids):
-        bert_out = self.bert(input_ids = input_ids, 
-                            token_type_ids = token_type_ids, 
-                            attention_mask = attention_mask)
+        bert_out = self.bert(
+            input_ids=input_ids,
+            attention_mask=attention_mask,
+            token_type_ids=token_type_ids
+        )
 
-        bert_hidden_state = bert_out[2]
-        bert_hidden_state = torch.stack(bert_hidden_state, dim=1)
-        bert_hidden_state = bert_hidden_state[:, -8:]
+        bert_last_hiddenstate = bert_out[0]
+        pooler = bert_last_hiddenstate[:, 0]
+        pooler = self.pre_classifier(pooler)
+        pooler = self.tanh(pooler)
+        pooler = self.dropout(pooler)
+        output = self.classifier(pooler)
 
-        x = [
-            F.relu(self.conv1(bert_hidden_state).squeeze(3)),
-            F.relu(self.conv2(bert_hidden_state).squeeze(3)),
-            F.relu(self.conv3(bert_hidden_state).squeeze(3))
-        ]
-
-        x = [ F.max_pool1d(i, i.size(2)).squeeze(2) for i in x ]
-        x = torch.cat(x, dim = 1) 
-        x = self.dropout(x)
-        logits = self.classifier(x)
-        logits = self.sigmoid(logits)
-        
-        return logits
+        return output
 
     def configure_optimizers(self):
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-
+        
         return optimizer
 
     def training_step(self, train_batch, batch_idx):
