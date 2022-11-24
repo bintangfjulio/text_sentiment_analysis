@@ -1,2 +1,2 @@
-# Tweet Sentiment Analysis
-Sentiment Analysis with Flesk Web Based Classifier Prototype
+# Indonesian Text Sentiment Analysis
+Indonesian Text Sentiment Analysis with Flesk Web Based Classifier Prototype
