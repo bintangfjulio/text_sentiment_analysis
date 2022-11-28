@@ -1,2 +1,2 @@
 # Indonesian Text Sentiment Analysis
-Indonesian Text Sentiment Analysis using IndoBERT Transformer with Flesk Web Based Classifier Prototype
+Indonesian text sentiment analysis using IndoBERT Transformer with Flesk web based classifier prototype
