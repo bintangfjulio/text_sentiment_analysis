@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch
 import pytorch_lightning as pl
-import random
 
 from sklearn.metrics import classification_report
 from transformers import BertModel
