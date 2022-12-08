@@ -15,7 +15,7 @@ app = Flask(__name__)
 
 class Inference():
     def __init__(self, 
-                model='checkpoints/indobert_result/epoch=2-step=744.ckpt'):
+                model='checkpoints/indobert_result/epoch=2-step=744.ckpt'): # change the path if found better model
 
         if not os.path.exists(model):
             print("No model available, run trainer.py first to create model")
