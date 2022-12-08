@@ -14,7 +14,7 @@ class IndoBERT(pl.LightningModule):
 
         super(IndoBERT, self).__init__()
 
-        torch.manual_seed(43)
+        torch.manual_seed(1)
         random.seed(43)
 
         self.bert = BertModel.from_pretrained('indolem/indobert-base-uncased')
