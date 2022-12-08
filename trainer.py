@@ -6,6 +6,8 @@ from util.preprocessor import Preprocessor
 from model.indobert import IndoBERT
 
 if __name__ == '__main__':
+    pl.seed_everything(42, workers=True)
+    
     module = Preprocessor()
     model = IndoBERT()
 
