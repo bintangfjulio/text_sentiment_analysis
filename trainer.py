@@ -17,11 +17,12 @@ if __name__ == '__main__':
     
     trainer = pl.Trainer(
         accelerator='gpu',
-        max_epochs=12,
+        max_epochs=50,
         default_root_dir="./checkpoints/indobert_result",
         callbacks = [checkpoint_callback, early_stop_callback],
         logger=logger,
-        log_every_n_steps=5)
+        log_every_n_steps=5,
+        deterministic=True)
 
     trainer.fit(model, datamodule=module)
     trainer.test(model=model, datamodule=module, ckpt_path='best')
