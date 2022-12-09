@@ -5,13 +5,13 @@ import pytorch_lightning as pl
 from sklearn.metrics import classification_report
 from transformers import BertModel
 
-class IndoBERT(pl.LightningModule):
+class BERT(pl.LightningModule):
     def __init__(self, 
                 n_out=2, 
                 dropout=0.3,
                 lr=2e-5):
 
-        super(IndoBERT, self).__init__()
+        super(BERT, self).__init__()
         self.bert = BertModel.from_pretrained('indolem/indobert-base-uncased')
         self.pre_classifier = nn.Linear(768, 768)
         self.dropout = nn.Dropout(dropout)
