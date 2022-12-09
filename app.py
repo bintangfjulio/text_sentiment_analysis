@@ -6,7 +6,7 @@ import sys
 from nltk.corpus import stopwords
 from transformers import BertTokenizer
 from Sastrawi.Stemmer.StemmerFactory import StemmerFactory
-from model.indobert import IndoBERT
+from model.bert import BERT
 from flask import Flask, render_template, request
 
 nltk.download('stopwords')
@@ -21,7 +21,7 @@ class Inference():
             print("No model available, run trainer.py first to create model")
             sys.exit()
 
-        self.model = IndoBERT.load_from_checkpoint(model)
+        self.model = BERT.load_from_checkpoint(model)
         self.model.eval()
         self.model.freeze()
         self.labels = ['negatif', 'positif']
