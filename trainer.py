@@ -11,17 +11,16 @@ if __name__ == '__main__':
     module = Preprocessor()
     model = BERT()
 
-    checkpoint_callback = ModelCheckpoint(dirpath='./checkpoints/indobert_result', monitor='val_loss')
-    logger = TensorBoardLogger("log", name="indobert_result")
+    checkpoint_callback = ModelCheckpoint(dirpath='./checkpoints/bert_results', monitor='val_loss')
+    logger = TensorBoardLogger("log", name="bert_results")
     early_stop_callback = EarlyStopping(monitor = 'val_loss', min_delta = 0.00, check_on_train_epoch_end=1, patience=3)
     
     trainer = pl.Trainer(
         accelerator='gpu',
         max_epochs=50,
-        default_root_dir="./checkpoints/indobert_result",
+        default_root_dir="./checkpoints/bert_results",
         callbacks = [checkpoint_callback, early_stop_callback],
         logger=logger,
-        log_every_n_steps=5,
         deterministic=True)
 
     trainer.fit(model, datamodule=module)
