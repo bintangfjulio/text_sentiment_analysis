@@ -3,13 +3,13 @@ import pytorch_lightning as pl
 from pytorch_lightning.loggers import TensorBoardLogger
 from pytorch_lightning.callbacks import EarlyStopping, ModelCheckpoint
 from util.preprocessor import Preprocessor
-from model.indobert import IndoBERT
+from model.bert import BERT
 
 if __name__ == '__main__':
     pl.seed_everything(42, workers=True)
     
     module = Preprocessor()
-    model = IndoBERT()
+    model = BERT()
 
     checkpoint_callback = ModelCheckpoint(dirpath='./checkpoints/indobert_result', monitor='val_loss')
     logger = TensorBoardLogger("log", name="indobert_result")
